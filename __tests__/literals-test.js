@@ -1,7 +1,7 @@
 import {testRun} from "./utils";
 
 
-test('literal', () => {
+test('literal 1', () => {
   testRun(`42;`, {
     type: 'Program',
     body: [
@@ -14,7 +14,9 @@ test('literal', () => {
       },
     ],
   });
+})
 
+test('literal 2', () => {
   // StringLiteral
   testRun(`"hello";`, {
     type: 'Program',
@@ -28,7 +30,9 @@ test('literal', () => {
       },
     ],
   });
+})
 
+test('literal 3', () => {
   // StringLiteral
   testRun(`'hello';`, {
     type: 'Program',

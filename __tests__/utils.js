@@ -1,9 +1,17 @@
-import {Parser} from '../src/Parser'
+import {parser} from '../src/parserCombinator'
+import {toValue} from "arcsecond"
 import assert from "assert";
 
-const parser = new Parser()
 
 export function testRun(program, expected) {
-  const ast = parser.parse(program);
-  assert.deepEqual(ast, expected);
+  const ast = parser.run(program);
+  let result
+  try {
+    result = toValue(ast);
+  } catch (parseError) {
+    console.error(parseError.message)
+  }
+
+  assert.deepEqual(result, expected);
+
 }
