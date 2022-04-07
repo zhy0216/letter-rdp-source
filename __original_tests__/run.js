@@ -17,7 +17,6 @@ const assert = require('assert');
  * List of tests.
  */
 const tests = [
-  require('./literals-test.js'),
   //require('./statement-list-test.js'),
   //require('./block-test.js'),
   //require('./empty-statement-test.js'),

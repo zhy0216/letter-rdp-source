@@ -12,31 +12,24 @@ import {
   lookAhead, anyOfString
 } from "arcsecond"
 
-const parseNumber = digits.map(r => ({
-  type: "NumericLiteral",
-  value: parseInt(r)
-}))
+const tag = (type, mapF, valueKey) => r => ({
+  type: type,
+  [valueKey? valueKey: "value"]: mapF? mapF(r): r
+})
+
+const parseNumber = digits.map(tag("NumericLiteral", parseInt))
 
 const parseString = lookAhead(anyOfString(`"'`))
   .chain(quote => sequenceOf([
     char(quote),
     letters, // todo
     char(quote)
-  ]).map(r => ({
-    type: "StringLiteral",
-    value: r[1]
-  })))
+  ]).map(tag("StringLiteral", r => r[1])))
 
 const parseStatement = choice([
   parseNumber,
   parseString,
 ])
-  .map(rs => ({
-    type: "ExpressionStatement",
-    expression: rs
-  }))
+  .map(tag("ExpressionStatement", undefined, "expression"))
 
-export const parser = many(parseStatement).map(r => ({
-  type: "Program",
-  body: r
-}))
+export const parser = many(parseStatement).map(tag("Program", undefined, "body"))
