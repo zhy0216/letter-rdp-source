@@ -1,8 +1,14 @@
-import {testRun} from "./utils";
+/**
+ * Building a Parser from scratch
+ *
+ * Course info: http://dmitrysoshnikov.com/courses/parser-from-scratch/
+ *
+ * (C) 2020-present Dmitry Soshnikov <dmitry.soshnikov@gmail.com>
+ */
 
-
-test('literal', () => {
-  testRun(`42;`, {
+module.exports = test => {
+  // NumericLiteral
+  test(`42;`, {
     type: 'Program',
     body: [
       {
@@ -16,7 +22,7 @@ test('literal', () => {
   });
 
   // StringLiteral
-  testRun(`"hello";`, {
+  test(`"hello";`, {
     type: 'Program',
     body: [
       {
@@ -30,7 +36,7 @@ test('literal', () => {
   });
 
   // StringLiteral
-  testRun(`'hello';`, {
+  test(`'hello';`, {
     type: 'Program',
     body: [
       {
@@ -42,4 +48,4 @@ test('literal', () => {
       },
     ],
   });
-});
+};
