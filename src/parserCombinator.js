@@ -11,7 +11,7 @@ import {
   str,
   lookAhead, anyOfString,
   skip,
-  optionalWhitespace,
+  optionalWhitespace, recursiveParser, pipeParsers,
 } from "arcsecond"
 
 const tag = (type, mapF, valueKey) => r => ({
@@ -30,17 +30,25 @@ const string = lookAhead(anyOfString(`"'`))
     char(quote)
   ]).map(tag("StringLiteral", r => r[1])))
 
-const expressionStatement = sequenceOf([
+const statement = recursiveParser(() => whitespaceSurrounded(choice([
+  expressionStatement,
+  blockStatement
+])))
+
+const blockStatement = pipeParsers([
+  between(
+    whitespaceSurrounded(str("{"))
+  )(
+    whitespaceSurrounded(str("}"))
+  )(many(statement)),
+]).map(tag("BlockStatement", undefined, "body"))
+
+const expressionStatement = pipeParsers([
   choice([
     number,
     string,
   ]),
-  semicolon,
-]).map(tag("ExpressionStatement", r => r[0], "expression"))
-
-const statement = choice([
-  whitespaceSurrounded(expressionStatement)
-])
-
+  skip(semicolon),
+]).map(tag("ExpressionStatement", undefined, "expression"))
 
 export const parser = many(statement).map(tag("Program", undefined, "body"))
