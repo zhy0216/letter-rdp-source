@@ -32,7 +32,8 @@ const string = lookAhead(anyOfString(`"'`))
 
 const statement = recursiveParser(() => whitespaceSurrounded(choice([
   expressionStatement,
-  blockStatement
+  blockStatement,
+  emptyStatement,
 ])))
 
 const blockStatement = pipeParsers([
@@ -50,5 +51,7 @@ const expressionStatement = pipeParsers([
   ]),
   skip(semicolon),
 ]).map(tag("ExpressionStatement", undefined, "expression"))
+
+const emptyStatement = semicolon.map(_ => ({type: "EmptyStatement"}))
 
 export const parser = many(statement).map(tag("Program", undefined, "body"))
