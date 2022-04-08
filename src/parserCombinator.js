@@ -9,27 +9,38 @@ import {
   anyChar,
   anythingExcept,
   str,
-  lookAhead, anyOfString
+  lookAhead, anyOfString,
+  skip,
+  optionalWhitespace,
 } from "arcsecond"
 
 const tag = (type, mapF, valueKey) => r => ({
   type: type,
   [valueKey? valueKey: "value"]: mapF? mapF(r): r
 })
+const whitespaceSurrounded = parser => between (optionalWhitespace) (optionalWhitespace) (parser)
+const semicolon = str(";")
 
-const parseNumber = digits.map(tag("NumericLiteral", parseInt))
+const number = digits.map(tag("NumericLiteral", parseInt))
 
-const parseString = lookAhead(anyOfString(`"'`))
+const string = lookAhead(anyOfString(`"'`))
   .chain(quote => sequenceOf([
     char(quote),
     letters, // todo
     char(quote)
   ]).map(tag("StringLiteral", r => r[1])))
 
-const parseStatement = choice([
-  parseNumber,
-  parseString,
-])
-  .map(tag("ExpressionStatement", undefined, "expression"))
+const expressionStatement = sequenceOf([
+  choice([
+    number,
+    string,
+  ]),
+  semicolon,
+]).map(tag("ExpressionStatement", r => r[0], "expression"))
 
-export const parser = many(parseStatement).map(tag("Program", undefined, "body"))
+const statement = choice([
+  whitespaceSurrounded(expressionStatement)
+])
+
+
+export const parser = many(statement).map(tag("Program", undefined, "body"))
