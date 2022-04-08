@@ -1,13 +1,7 @@
-/**
- * Building a Parser from scratch
- *
- * Course info: http://dmitrysoshnikov.com/courses/parser-from-scratch/
- *
- * (C) 2020-present Dmitry Soshnikov <dmitry.soshnikov@gmail.com>
- */
+import {testRun} from "./utils";
 
-module.exports = test => {
-  test(
+test("block 1", () => {
+  testRun(
     `
 
     {
@@ -43,10 +37,12 @@ module.exports = test => {
       ],
     },
   );
+})
 
-  // Empty block:
+// Empty block:
+test("block 2", () => {
 
-  test(
+  testRun(
     `
 
     {
@@ -64,20 +60,23 @@ module.exports = test => {
       ],
     },
   );
+})
+
+
+test("block 3", () => {
 
   // Nested blocks:
-
-  test(
+  testRun(
     `
-
-    {
-      42;
+  
       {
-        "hello";
+        42;
+        {
+          "hello";
+        }
       }
-    }
-
-  `,
+  
+    `,
     {
       type: 'Program',
       body: [
@@ -108,4 +107,4 @@ module.exports = test => {
       ],
     },
   );
-};
+})
