@@ -39,6 +39,14 @@ const literal = choice([
   string,
 ])
 
+const identifier = letters.map(tag("Identifier", undefined, "name"))
+
+const expression = recursiveParser(() => choice([
+  binaryExpression,
+  assignmentExpression,
+  literal,
+]))
+
 // ignore precedence for now....
 const binaryExpression = sequenceOf([
   whitespaceSurrounded(literal),
@@ -50,7 +58,7 @@ const binaryExpression = sequenceOf([
   .map(([initialTerm, rest]) => {
     let left = initialTerm
 
-    for(const items of rest) {
+    for (const items of rest) {
       const [operator, right] = items
       left = {
         type: "BinaryExpression",
@@ -62,6 +70,20 @@ const binaryExpression = sequenceOf([
 
     return left
   })
+
+const assignmentExpression = sequenceOf([
+  whitespaceSurrounded(identifier),
+  str("="),
+  whitespaceSurrounded(
+    expression
+  ),
+])
+  .map(([left, operator, right]) => ({
+    type: "AssignmentExpression",
+    left,
+    operator,
+    right,
+  }))
 
 /** statement **/
 const statement = recursiveParser(() => whitespaceSurrounded(choice([
@@ -78,13 +100,11 @@ const blockStatement = pipeParsers([
   )(many(statement)),
 ]).map(tag("BlockStatement", undefined, "body"))
 
-const expressionStatement = pipeParsers([
-  choice([
-    binaryExpression,
-    literal,
-  ]),
-  skip(semicolon),
-]).map(tag("ExpressionStatement", undefined, "expression"))
+const expressionStatement =
+  pipeParsers([
+    expression,
+    skip(semicolon),
+  ]).map(tag("ExpressionStatement", undefined, "expression"))
 
 const emptyStatement = semicolon.map(_ => ({type: "EmptyStatement"}))
 
