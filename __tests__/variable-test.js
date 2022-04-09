@@ -1,37 +1,31 @@
-/**
- * Building a Parser from scratch
- *
- * Course info: http://dmitrysoshnikov.com/courses/parser-from-scratch/
- *
- * (C) 2020-present Dmitry Soshnikov <dmitry.soshnikov@gmail.com>
- */
+import {testRun} from "./utils";
 
-module.exports = test => {
-  // Simple variable declaration:
-  test(`let x = 42;`, {
-    type: 'Program',
-    body: [
-      {
-        type: 'VariableStatement',
-        declarations: [
-          {
-            type: 'VariableDeclaration',
-            id: {
-              type: 'Identifier',
-              name: 'x',
+test("Simple variable declaration", () => {
+    testRun(`let x = 42;`, {
+      type: 'Program',
+      body: [
+        {
+          type: 'VariableStatement',
+          declarations: [
+            {
+              type: 'VariableDeclaration',
+              id: {
+                type: 'Identifier',
+                name: 'x',
+              },
+              init: {
+                type: 'NumericLiteral',
+                value: 42,
+              },
             },
-            init: {
-              type: 'NumericLiteral',
-              value: 42,
-            },
-          },
-        ],
-      },
-    ],
-  });
+          ],
+        },
+      ],
+    });
+})
 
-  // Variable declaration, no init:
-  test(`let x;`, {
+test("Variable declaration, no init", () => {
+  testRun(`let x;`, {
     type: 'Program',
     body: [
       {
@@ -49,9 +43,10 @@ module.exports = test => {
       },
     ],
   });
+})
 
-  // Multiple variable declarations, no init:
-  test(`let x, y;`, {
+test("Multiple variable declarations, no init", () => {
+  testRun(`let x, y;`, {
     type: 'Program',
     body: [
       {
@@ -77,9 +72,10 @@ module.exports = test => {
       },
     ],
   });
+})
 
-  // Multiple variable declarations:
-  test(`let x, y = 42;`, {
+test("Multiple variable declarations", () => {
+  testRun(`let x, y = 42;`, {
     type: 'Program',
     body: [
       {
@@ -108,4 +104,4 @@ module.exports = test => {
       },
     ],
   });
-};
+})
