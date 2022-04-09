@@ -11,14 +11,18 @@ import {
   str,
   lookAhead, anyOfString,
   skip,
-  optionalWhitespace, recursiveParser, pipeParsers,
+  optionalWhitespace, recursiveParser, pipeParsers, possibly, sepBy1, many1,
 } from "arcsecond"
 
 const tag = (type, mapF, valueKey) => r => ({
   type: type,
-  [valueKey? valueKey: "value"]: mapF? mapF(r): r
+  [valueKey ? valueKey : "value"]: mapF ? mapF(r) : r
 })
-const whitespaceSurrounded = parser => between (optionalWhitespace) (optionalWhitespace) (parser)
+
+const whitespaceSurrounded = parser => between(optionalWhitespace)(optionalWhitespace)(parser)
+const betweenParentheses = parser =>
+  between(whitespaceSurrounded(char('(')))(whitespaceSurrounded(char(')')))(parser);
+
 const semicolon = str(";")
 
 const number = digits.map(tag("NumericLiteral", parseInt))
@@ -30,6 +34,36 @@ const string = lookAhead(anyOfString(`"'`))
     char(quote)
   ]).map(tag("StringLiteral", r => r[1])))
 
+const literal = choice([
+  number,
+  string,
+])
+
+// ignore precedence for now....
+const binaryExpression = sequenceOf([
+  whitespaceSurrounded(literal),
+  many1(sequenceOf([
+    anyOfString("+-*/"),
+    whitespaceSurrounded(literal)
+  ]))
+])
+  .map(([initialTerm, rest]) => {
+    let left = initialTerm
+
+    for(const items of rest) {
+      const [operator, right] = items
+      left = {
+        type: "BinaryExpression",
+        left,
+        operator,
+        right
+      }
+    }
+
+    return left
+  })
+
+/** statement **/
 const statement = recursiveParser(() => whitespaceSurrounded(choice([
   expressionStatement,
   blockStatement,
@@ -46,8 +80,8 @@ const blockStatement = pipeParsers([
 
 const expressionStatement = pipeParsers([
   choice([
-    number,
-    string,
+    binaryExpression,
+    literal,
   ]),
   skip(semicolon),
 ]).map(tag("ExpressionStatement", undefined, "expression"))
