@@ -20,12 +20,14 @@ const tag = (type, mapF, valueKey) => r => ({
 })
 
 const keywords = {
-  let: str("let")
+  let: str("let"),
+  if: str("if"),
+  else: str("else"),
 }
 
-const whitespaceSurrounded = parser => between(optionalWhitespace)(optionalWhitespace)(parser)
-const betweenParentheses = parser =>
-  between(whitespaceSurrounded(char('(')))(whitespaceSurrounded(char(')')))(parser);
+const whitespaceSurrounded = between(optionalWhitespace)(optionalWhitespace)
+const betweenParentheses = between(whitespaceSurrounded(char('(')))(whitespaceSurrounded(char(')')))
+const betweenBraces = between(whitespaceSurrounded(char('{')))(whitespaceSurrounded(char('}')))
 
 const semicolon = str(";")
 
@@ -95,14 +97,11 @@ const statement = recursiveParser(() => whitespaceSurrounded(choice([
   blockStatement,
   emptyStatement,
   variableStatement,
+  ifStatement,
 ])))
 
 const blockStatement = pipeParsers([
-  between(
-    whitespaceSurrounded(str("{"))
-  )(
-    whitespaceSurrounded(str("}"))
-  )(many(statement)),
+  betweenBraces(many(statement)),
 ]).map(tag("BlockStatement", undefined, "body"))
 
 const expressionStatement =
@@ -133,6 +132,21 @@ const variableStatement = sequenceOf([
 ]).map(r => ({
   type: "VariableStatement",
   declarations: [r[1], ...r[2]]
+}))
+
+const ifStatement = sequenceOf([
+  whitespaceSurrounded(keywords.if),
+  betweenParentheses(whitespaceSurrounded(identifier)),
+  blockStatement,
+  possibly(pipeParsers([
+    whitespaceSurrounded(keywords.else),
+    blockStatement,
+  ]))
+]).map(r => ({
+  type: "IfStatement",
+  test: r[1],
+  consequent: r[2],
+  alternate: r[3] || null,
 }))
 
 const emptyStatement = semicolon.map(_ => ({type: "EmptyStatement"}))

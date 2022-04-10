@@ -1,13 +1,7 @@
-/**
- * Building a Parser from scratch
- *
- * Course info: http://dmitrysoshnikov.com/courses/parser-from-scratch/
- *
- * (C) 2020-present Dmitry Soshnikov <dmitry.soshnikov@gmail.com>
- */
+import {testRun} from "./utils";
 
-module.exports = test => {
-  test(
+test("if else", () => {
+  testRun(
     `
 
     if (x) {
@@ -71,9 +65,10 @@ module.exports = test => {
       ],
     },
   );
+})
 
-  // No else part:
-  test(
+test("if", () => {
+  testRun(
     `
 
     if (x) {
@@ -116,4 +111,4 @@ module.exports = test => {
       ],
     },
   );
-};
+})
