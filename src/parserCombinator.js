@@ -11,13 +11,17 @@ import {
   str,
   lookAhead, anyOfString,
   skip,
-  optionalWhitespace, recursiveParser, pipeParsers, possibly, sepBy1, many1,
+  optionalWhitespace, recursiveParser, pipeParsers, possibly, sepBy1, many1, sepBy,
 } from "arcsecond"
 
 const tag = (type, mapF, valueKey) => r => ({
   type: type,
   [valueKey ? valueKey : "value"]: mapF ? mapF(r) : r
 })
+
+const keywords = {
+  let: str("let")
+}
 
 const whitespaceSurrounded = parser => between(optionalWhitespace)(optionalWhitespace)(parser)
 const betweenParentheses = parser =>
@@ -90,6 +94,7 @@ const statement = recursiveParser(() => whitespaceSurrounded(choice([
   expressionStatement,
   blockStatement,
   emptyStatement,
+  variableStatement,
 ])))
 
 const blockStatement = pipeParsers([
@@ -105,6 +110,30 @@ const expressionStatement =
     expression,
     skip(semicolon),
   ]).map(tag("ExpressionStatement", undefined, "expression"))
+
+const variableDeclaration = sequenceOf([
+  whitespaceSurrounded(identifier),
+  possibly(pipeParsers([
+    whitespaceSurrounded(str("=")),
+    whitespaceSurrounded(literal),
+  ]))
+]).map(r => {
+  return {
+    id: r[0],
+    init: r[1],
+    type: "VariableDeclaration",
+  }
+})
+
+const variableStatement = sequenceOf([
+  whitespaceSurrounded(keywords.let),
+  variableDeclaration,
+  many(pipeParsers([whitespaceSurrounded(str(",")), variableDeclaration])),
+  skip(semicolon),
+]).map(r => ({
+  type: "VariableStatement",
+  declarations: [r[1], ...r[2]]
+}))
 
 const emptyStatement = semicolon.map(_ => ({type: "EmptyStatement"}))
 
