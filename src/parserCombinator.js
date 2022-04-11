@@ -109,7 +109,12 @@ const logicalExpression = sequenceOf([
   whitespaceSurrounded(equalityExpression),
   whitespaceSurrounded(logicOperator),
   whitespaceSurrounded(expression),
-])
+]).map(r => ({
+  type: "LogicalExpression",
+  operator: r[1],
+  left: r[0],
+  right: r[2],
+}))
 
 
 const assignmentExpression = sequenceOf([
