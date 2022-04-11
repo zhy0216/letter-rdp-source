@@ -17,7 +17,6 @@ const assert = require('assert');
  * List of tests.
  */
 const tests = [
-  //require('./equality-test.js'),
   //require('./logical-test.js'),
   //require('./unary-test.js'),
   //require('./while-test.js'),

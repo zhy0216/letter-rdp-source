@@ -52,51 +52,65 @@ const literal = choice([
 const identifier = letters.map(tag("Identifier", undefined, "name"))
 
 const expression = recursiveParser(() => choice([
+  logicalExpression,
+  equalityExpression,
   binaryExpression,
   assignmentExpression,
   literal,
 ]))
+
+const logicOperator = choice([
+  str("&&"),
+  str("||"),
+])
+
+const binaryOperator = choice([
+  anyOfString("+-*/"),
+])
 
 const relationOperator = choice([
   str(">="),
   str("<="),
   str("<"),
   str(">"),
-])
-
-const binaryOperator = choice([
-  anyOfString("+-*/"),
-  relationOperator,
   str("=="),
   str("!="),
 ])
 
-// ignore precedence for now....
-const binaryExpression = sequenceOf([
+const makeBinaryExpression = operator => sequenceOf([
   whitespaceSurrounded(choice([literal, identifier])),
-  // tapParser(console.log),
   many1(sequenceOf([
-    binaryOperator,
-    // tapParser(console.log),
+    operator,
     whitespaceSurrounded(choice([literal, identifier])),
-    // tapParser(console.log),
   ]))
-])
-  .map(([initialTerm, rest]) => {
-    let left = initialTerm
+]).map(([initialTerm, rest]) => {
+  let left = initialTerm
 
-    for (const items of rest) {
-      const [operator, right] = items
-      left = {
-        type: "BinaryExpression",
-        left,
-        operator,
-        right
-      }
+  for (const items of rest) {
+    const [operator, right] = items
+    left = {
+      type: "BinaryExpression",
+      left,
+      operator,
+      right
     }
+  }
 
-    return left
-  })
+  return left
+})
+
+
+// ignore precedence for now....
+const binaryExpression = makeBinaryExpression(binaryOperator)
+
+const equalityExpression = makeBinaryExpression(relationOperator)
+
+const logicalExpression = sequenceOf([
+  whitespaceSurrounded(equalityExpression),
+  whitespaceSurrounded(logicOperator),
+  whitespaceSurrounded(expression),
+])
+
 
 const assignmentExpression = sequenceOf([
   whitespaceSurrounded(identifier),
