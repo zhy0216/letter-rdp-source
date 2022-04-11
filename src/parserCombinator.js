@@ -52,6 +52,7 @@ const literal = choice([
 const identifier = letters.map(tag("Identifier", undefined, "name"))
 
 const expression = recursiveParser(() => choice([
+  unaryExpression,
   logicalExpression,
   equalityExpression,
   binaryExpression,
@@ -116,6 +117,14 @@ const logicalExpression = sequenceOf([
   right: r[2],
 }))
 
+const unaryExpression = sequenceOf([
+  anyOfString("-!"),
+  choice([literal, identifier]),
+]).map(r => ({
+  type: "UnaryExpression",
+  operator: r[0],
+  argument: r[1],
+}))
 
 const assignmentExpression = sequenceOf([
   whitespaceSurrounded(identifier),
