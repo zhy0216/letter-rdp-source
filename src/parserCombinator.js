@@ -11,7 +11,7 @@ import {
   str,
   lookAhead, anyOfString,
   skip,
-  optionalWhitespace, recursiveParser, pipeParsers, possibly, sepBy1, many1, sepBy,
+  optionalWhitespace, recursiveParser, pipeParsers, possibly, sepBy1, many1, sepBy, tapParser,
 } from "arcsecond"
 
 const tag = (type, mapF, valueKey) => r => ({
@@ -40,9 +40,13 @@ const string = lookAhead(anyOfString(`"'`))
     char(quote)
   ]).map(tag("StringLiteral", r => r[1])))
 
+const boolean = choice([str("true"), str("false")])
+  .map(tag("BooleanLiteral", r => r === "true"))
+
 const literal = choice([
   number,
   string,
+  boolean,
 ])
 
 const identifier = letters.map(tag("Identifier", undefined, "name"))
@@ -53,12 +57,29 @@ const expression = recursiveParser(() => choice([
   literal,
 ]))
 
+const relationOperator = choice([
+  str(">="),
+  str("<="),
+  str("<"),
+  str(">"),
+])
+
+const binaryOperator = choice([
+  anyOfString("+-*/"),
+  relationOperator,
+  str("=="),
+  str("!="),
+])
+
 // ignore precedence for now....
 const binaryExpression = sequenceOf([
-  whitespaceSurrounded(choice([identifier, literal])),
+  whitespaceSurrounded(choice([literal, identifier])),
+  // tapParser(console.log),
   many1(sequenceOf([
-    anyOfString("+-*/>"),
-    whitespaceSurrounded(choice([identifier, literal]))
+    binaryOperator,
+    // tapParser(console.log),
+    whitespaceSurrounded(choice([literal, identifier])),
+    // tapParser(console.log),
   ]))
 ])
   .map(([initialTerm, rest]) => {

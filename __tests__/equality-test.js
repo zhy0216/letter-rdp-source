@@ -1,13 +1,7 @@
-/**
- * Building a Parser from scratch
- *
- * Course info: http://dmitrysoshnikov.com/courses/parser-from-scratch/
- *
- * (C) 2020-present Dmitry Soshnikov <dmitry.soshnikov@gmail.com>
- */
+import {testRun} from "./utils";
 
-module.exports = test => {
-  test('x > 0 == true;', {
+test("==", () => {
+  testRun('x > 0 == true;', {
     type: 'Program',
     body: [
       {
@@ -35,8 +29,10 @@ module.exports = test => {
       },
     ],
   });
+})
 
-  test('x >= 0 != false;', {
+test("!=", () => {
+  testRun('x >= 0 != false;', {
     type: 'Program',
     body: [
       {
@@ -64,4 +60,4 @@ module.exports = test => {
       },
     ],
   });
-};
+})
