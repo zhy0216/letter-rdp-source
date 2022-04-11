@@ -55,10 +55,10 @@ const expression = recursiveParser(() => choice([
 
 // ignore precedence for now....
 const binaryExpression = sequenceOf([
-  whitespaceSurrounded(literal),
+  whitespaceSurrounded(choice([identifier, literal])),
   many1(sequenceOf([
-    anyOfString("+-*/"),
-    whitespaceSurrounded(literal)
+    anyOfString("+-*/>"),
+    whitespaceSurrounded(choice([identifier, literal]))
   ]))
 ])
   .map(([initialTerm, rest]) => {
