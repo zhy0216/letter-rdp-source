@@ -23,6 +23,7 @@ const keywords = {
   let: str("let"),
   if: str("if"),
   else: str("else"),
+  while: str("while"),
 }
 
 const whitespaceSurrounded = between(optionalWhitespace)(optionalWhitespace)
@@ -54,7 +55,7 @@ const identifier = letters.map(tag("Identifier", undefined, "name"))
 const expression = recursiveParser(() => choice([
   unaryExpression,
   logicalExpression,
-  equalityExpression,
+  relationExpression,
   binaryExpression,
   assignmentExpression,
   literal,
@@ -104,10 +105,10 @@ const makeBinaryExpression = operator => sequenceOf([
 // ignore precedence for now....
 const binaryExpression = makeBinaryExpression(binaryOperator)
 
-const equalityExpression = makeBinaryExpression(relationOperator)
+const relationExpression = makeBinaryExpression(relationOperator)
 
 const logicalExpression = sequenceOf([
-  whitespaceSurrounded(equalityExpression),
+  whitespaceSurrounded(relationExpression),
   whitespaceSurrounded(logicOperator),
   whitespaceSurrounded(expression),
 ]).map(r => ({
@@ -126,9 +127,15 @@ const unaryExpression = sequenceOf([
   argument: r[1],
 }))
 
+const assignmentOperator = choice([
+  str("="),
+  str("-="),
+  str("+=")
+])
+
 const assignmentExpression = sequenceOf([
   whitespaceSurrounded(identifier),
-  str("="),
+  assignmentOperator,
   whitespaceSurrounded(
     expression
   ),
@@ -147,11 +154,22 @@ const statement = recursiveParser(() => whitespaceSurrounded(choice([
   emptyStatement,
   variableStatement,
   ifStatement,
+  whileStatement,
 ])))
 
 const blockStatement = pipeParsers([
   betweenBraces(many(statement)),
 ]).map(tag("BlockStatement", undefined, "body"))
+
+const whileStatement = sequenceOf([
+  whitespaceSurrounded(keywords.while),
+  whitespaceSurrounded(betweenParentheses(relationExpression)),
+  whitespaceSurrounded(blockStatement)
+]).map(r => ({
+  type: "WhileStatement",
+  test: r[1],
+  body: r[2],
+}))
 
 const expressionStatement =
   pipeParsers([
