@@ -1,13 +1,7 @@
-/**
- * Building a Parser from scratch
- *
- * Course info: http://dmitrysoshnikov.com/courses/parser-from-scratch/
- *
- * (C) 2020-present Dmitry Soshnikov <dmitry.soshnikov@gmail.com>
- */
+import {testRun} from "./utils";
 
-module.exports = test => {
-  test(
+test("do while", () => {
+  testRun(
     `
     do {
       x -= 1;
@@ -55,4 +49,4 @@ module.exports = test => {
       ],
     },
   );
-};
+})

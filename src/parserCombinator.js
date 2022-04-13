@@ -24,6 +24,7 @@ const keywords = {
   if: str("if"),
   else: str("else"),
   while: str("while"),
+  do: str("do"),
 }
 
 const whitespaceSurrounded = between(optionalWhitespace)(optionalWhitespace)
@@ -151,10 +152,11 @@ const assignmentExpression = sequenceOf([
 const statement = recursiveParser(() => whitespaceSurrounded(choice([
   expressionStatement,
   blockStatement,
-  emptyStatement,
   variableStatement,
   ifStatement,
   whileStatement,
+  doWhileStatement,
+  emptyStatement,
 ])))
 
 const blockStatement = pipeParsers([
@@ -169,6 +171,18 @@ const whileStatement = sequenceOf([
   type: "WhileStatement",
   test: r[1],
   body: r[2],
+}))
+
+const doWhileStatement = sequenceOf([
+  whitespaceSurrounded(keywords.do),
+  whitespaceSurrounded(blockStatement),
+  whitespaceSurrounded(keywords.while),
+  whitespaceSurrounded(betweenParentheses(relationExpression)),
+  skip(semicolon),
+]).map(r => ({
+  type: "DoWhileStatement",
+  body: r[1],
+  test: r[3],
 }))
 
 const expressionStatement =
