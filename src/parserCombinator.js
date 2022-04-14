@@ -25,6 +25,7 @@ const keywords = {
   else: str("else"),
   while: str("while"),
   do: str("do"),
+  for: str("for"),
 }
 
 const whitespaceSurrounded = between(optionalWhitespace)(optionalWhitespace)
@@ -60,6 +61,7 @@ const expression = recursiveParser(() => choice([
   binaryExpression,
   assignmentExpression,
   literal,
+  identifier,
 ]))
 
 const logicOperator = choice([
@@ -141,11 +143,11 @@ const assignmentExpression = sequenceOf([
     expression
   ),
 ])
-  .map(([left, operator, right]) => ({
+  .map((r) => ({
     type: "AssignmentExpression",
-    left,
-    operator,
-    right,
+    left: r[0],
+    operator: r[1],
+    right: r[2],
   }))
 
 /** statement **/
@@ -156,6 +158,7 @@ const statement = recursiveParser(() => whitespaceSurrounded(choice([
   ifStatement,
   whileStatement,
   doWhileStatement,
+  forStatement,
   emptyStatement,
 ])))
 
@@ -213,6 +216,23 @@ const variableStatement = sequenceOf([
 ]).map(r => ({
   type: "VariableStatement",
   declarations: [r[1], ...r[2]]
+}))
+
+const forStatement = sequenceOf([
+  whitespaceSurrounded(keywords.for),
+  betweenParentheses(sequenceOf([
+    choice([whitespaceSurrounded(variableStatement), whitespaceSurrounded(skip(semicolon))]),
+    possibly(whitespaceSurrounded(relationExpression)),
+    whitespaceSurrounded(semicolon),
+    possibly(whitespaceSurrounded(assignmentExpression)),
+  ])),
+  whitespaceSurrounded(blockStatement),
+]).map(r => ({
+    type: "ForStatement",
+    init: r[1][0] || null,
+    test: r[1][1] || null,
+    update: r[1][3] || null,
+    body: r[2],
 }))
 
 const ifStatement = sequenceOf([
