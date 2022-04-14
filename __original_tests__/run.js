@@ -17,7 +17,6 @@ const assert = require('assert');
  * List of tests.
  */
 const tests = [
-  //require('./for-test.js'),
   //require('./function-declaration-test.js'),
   //require('./member-test.js'),
   //require('./call-test.js'),

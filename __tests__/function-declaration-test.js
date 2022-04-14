@@ -1,13 +1,7 @@
-/**
- * Building a Parser from scratch
- *
- * Course info: http://dmitrysoshnikov.com/courses/parser-from-scratch/
- *
- * (C) 2020-present Dmitry Soshnikov <dmitry.soshnikov@gmail.com>
- */
+import {testRun} from "./utils";
 
-module.exports = test => {
-  test(
+test("def 1", () => {
+  testRun(
     `
 
     def square(x) {
@@ -55,8 +49,10 @@ module.exports = test => {
       ],
     },
   );
+})
 
-  test(
+test("def 2", () => {
+  testRun(
     `
 
     def empty() {
@@ -88,4 +84,4 @@ module.exports = test => {
       ],
     },
   );
-};
+})

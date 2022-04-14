@@ -26,6 +26,8 @@ const keywords = {
   while: str("while"),
   do: str("do"),
   for: str("for"),
+  def: str("def"),
+  return: str("return"),
 }
 
 const whitespaceSurrounded = between(optionalWhitespace)(optionalWhitespace)
@@ -152,6 +154,7 @@ const assignmentExpression = sequenceOf([
 
 /** statement **/
 const statement = recursiveParser(() => whitespaceSurrounded(choice([
+  returnStatement,
   expressionStatement,
   blockStatement,
   variableStatement,
@@ -160,6 +163,7 @@ const statement = recursiveParser(() => whitespaceSurrounded(choice([
   doWhileStatement,
   forStatement,
   emptyStatement,
+  functionDeclaration,
 ])))
 
 const blockStatement = pipeParsers([
@@ -248,6 +252,27 @@ const ifStatement = sequenceOf([
   test: r[1],
   consequent: r[2],
   alternate: r[3] || null,
+}))
+
+const returnStatement = sequenceOf([
+  whitespaceSurrounded(keywords.return),
+  whitespaceSurrounded(possibly(expression)),
+  whitespaceSurrounded(skip(semicolon)),
+]).map(r => ({
+  type: "ReturnStatement",
+  argument: r[1],
+}))
+
+const functionDeclaration = sequenceOf([
+  whitespaceSurrounded(keywords.def),
+  whitespaceSurrounded(identifier),
+  whitespaceSurrounded(betweenParentheses(many(identifier))),
+  whitespaceSurrounded(blockStatement),
+]).map(r => ({
+  type: "FunctionDeclaration",
+  name: r[1],
+  params: r[2],
+  body: r[3],
 }))
 
 const emptyStatement = semicolon.map(_ => ({type: "EmptyStatement"}))
