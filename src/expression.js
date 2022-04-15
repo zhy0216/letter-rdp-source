@@ -1,5 +1,5 @@
-import {anyOfString, choice, many1, recursiveParser, sequenceOf, str} from "arcsecond";
-import {identifier, literal, whitespaceSurrounded} from "./basic";
+import {anyOfString, choice, many, many1, pipeParsers, recursiveParser, sequenceOf, str} from "arcsecond";
+import {betweenSquareBrackets, identifier, literal, whitespaceSurrounded} from "./basic";
 
 export const expression = recursiveParser(() => choice([
   unaryExpression,
@@ -7,6 +7,7 @@ export const expression = recursiveParser(() => choice([
   relationExpression,
   binaryExpression,
   assignmentExpression,
+  memberExpression,
   literal,
   identifier,
 ]))
@@ -51,7 +52,6 @@ const makeBinaryExpression = operator => sequenceOf([
   return left
 })
 
-
 // ignore precedence for now....
 const binaryExpression = makeBinaryExpression(binaryOperator)
 
@@ -77,6 +77,37 @@ const unaryExpression = sequenceOf([
   argument: r[1],
 }))
 
+const memberExpression = sequenceOf([
+  whitespaceSurrounded(identifier),
+  many1(choice([
+    sequenceOf([
+      str("."),
+      identifier,
+    ]),
+    sequenceOf([betweenSquareBrackets(literal)]),
+  ]))
+]).map(r => {
+  const isDot = r[1][0][0] === "."
+  let result = {
+    type: "MemberExpression",
+    computed: !isDot,
+    object: r[0],
+    property: isDot ? r[1][0][1] : r[1][0][0],
+  }
+
+  for(const seq of r[1].slice(1)) {
+    const isDot = seq[0] === "."
+    result = {
+      type: "MemberExpression",
+      computed: !isDot,
+      object: result,
+      property: isDot ? seq[1] : seq[0],
+    }
+  }
+
+  return result
+})
+
 const assignmentOperator = choice([
   str("="),
   str("-="),
@@ -84,7 +115,7 @@ const assignmentOperator = choice([
 ])
 
 export const assignmentExpression = sequenceOf([
-  whitespaceSurrounded(identifier),
+  whitespaceSurrounded(choice([memberExpression, identifier])),
   assignmentOperator,
   whitespaceSurrounded(
     expression

@@ -29,7 +29,9 @@ export const keywords = {
 
 export const whitespaceSurrounded = between(optionalWhitespace)(optionalWhitespace)
 export const betweenParentheses = between(whitespaceSurrounded(char('(')))(whitespaceSurrounded(char(')')))
-export const betweenBraces = between(whitespaceSurrounded(char('{')))(whitespaceSurrounded(char('}')))
+export const betweenBrackets = between(whitespaceSurrounded(char('{')))(whitespaceSurrounded(char('}')))
+export const betweenSquareBrackets = between(whitespaceSurrounded(char('[')))(whitespaceSurrounded(char(']')))
+
 
 export const semicolon = str(";")
 

@@ -7,7 +7,7 @@ import {
   recursiveParser, pipeParsers, possibly,
 } from "arcsecond"
 import {
-  betweenBraces,
+  betweenBrackets,
   betweenParentheses,
   identifier,
   keywords,
@@ -33,7 +33,7 @@ const statement = recursiveParser(() => whitespaceSurrounded(choice([
 ])))
 
 const blockStatement = pipeParsers([
-  betweenBraces(many(statement)),
+  betweenBrackets(many(statement)),
 ]).map(tag("BlockStatement", undefined, "body"))
 
 const whileStatement = sequenceOf([
