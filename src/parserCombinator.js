@@ -1,60 +1,22 @@
 import {
-  letters,
-  digits,
   choice,
   many,
-  between,
   sequenceOf,
-  char,
-  anyChar,
-  anythingExcept,
   str,
-  lookAhead, anyOfString,
+  anyOfString,
   skip,
-  optionalWhitespace, recursiveParser, pipeParsers, possibly, sepBy1, many1, sepBy, tapParser,
+  recursiveParser, pipeParsers, possibly, many1,
 } from "arcsecond"
-
-const tag = (type, mapF, valueKey) => r => ({
-  type: type,
-  [valueKey ? valueKey : "value"]: mapF ? mapF(r) : r
-})
-
-const keywords = {
-  let: str("let"),
-  if: str("if"),
-  else: str("else"),
-  while: str("while"),
-  do: str("do"),
-  for: str("for"),
-  def: str("def"),
-  return: str("return"),
-}
-
-const whitespaceSurrounded = between(optionalWhitespace)(optionalWhitespace)
-const betweenParentheses = between(whitespaceSurrounded(char('(')))(whitespaceSurrounded(char(')')))
-const betweenBraces = between(whitespaceSurrounded(char('{')))(whitespaceSurrounded(char('}')))
-
-const semicolon = str(";")
-
-const number = digits.map(tag("NumericLiteral", parseInt))
-
-const string = lookAhead(anyOfString(`"'`))
-  .chain(quote => sequenceOf([
-    char(quote),
-    letters, // todo
-    char(quote)
-  ]).map(tag("StringLiteral", r => r[1])))
-
-const boolean = choice([str("true"), str("false")])
-  .map(tag("BooleanLiteral", r => r === "true"))
-
-const literal = choice([
-  number,
-  string,
-  boolean,
-])
-
-const identifier = letters.map(tag("Identifier", undefined, "name"))
+import {
+  betweenBraces,
+  betweenParentheses,
+  identifier,
+  keywords,
+  literal,
+  semicolon,
+  tag,
+  whitespaceSurrounded
+} from "./basic";
 
 const expression = recursiveParser(() => choice([
   unaryExpression,
