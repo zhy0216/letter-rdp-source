@@ -19,7 +19,7 @@ import {
 
 import {assignmentExpression, expression, relationExpression} from "./expression"
 
-const statement = recursiveParser(() => whitespaceSurrounded(choice([
+export const statement = recursiveParser(() => whitespaceSurrounded(choice([
   returnStatement,
   expressionStatement,
   classDeclaration,
@@ -170,4 +170,3 @@ const classDeclaration = sequenceOf([
 
 const emptyStatement = semicolon.map(_ => ({type: "EmptyStatement"}))
 
-export const parser = many(statement).map(tag("Program", undefined, "body"))
