@@ -10,7 +10,7 @@ import {
   str,
   tapParser
 } from "arcsecond";
-import {betweenParentheses, betweenSquareBrackets, identifier, literal, whitespaceSurrounded} from "./basic";
+import {betweenParentheses, betweenSquareBrackets, identifier, keywords, literal, whitespaceSurrounded} from "./basic";
 
 export const expression = recursiveParser(() => choice([
   unaryExpression,
@@ -18,6 +18,7 @@ export const expression = recursiveParser(() => choice([
   relationExpression,
   binaryExpression,
   assignmentExpression,
+  newExpression,
   callExpression,
   memberExpression,
   literal,
@@ -176,3 +177,19 @@ export const assignmentExpression = sequenceOf([
     operator: r[1],
     right: r[2],
   }))
+
+const newExpression = sequenceOf([
+  whitespaceSurrounded(keywords.new),
+  identifier,
+  betweenParentheses(possibly(sequenceOf([
+    whitespaceSurrounded(choice([identifier, literal])),
+    many(pipeParsers([
+      whitespaceSurrounded(str(",")),
+      whitespaceSurrounded(choice([identifier, literal])),
+    ]))
+  ]))),
+]).map(r => ({
+  type: "NewExpression",
+  callee: r[1],
+  arguments: r[2]? [r[2][0]].concat(r[2][1]): []
+}))

@@ -27,6 +27,7 @@ export const keywords = {
   def: str("def"),
   return: str("return"),
   class: str("class"),
+  new: str("new"),
 }
 
 export const whitespaceSurrounded = between(optionalWhitespace)(optionalWhitespace)
