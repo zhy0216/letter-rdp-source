@@ -42,12 +42,48 @@ const relationOperator = choice([
   str("!="),
 ])
 
+const thisExpression = str("this").map(r => ({type: "ThisExpression"}))
+
+const memberExpression = sequenceOf([
+  whitespaceSurrounded(choice([
+    thisExpression,
+    identifier
+  ])),
+  many1(choice([
+    sequenceOf([
+      str("."),
+      identifier,
+    ]),
+    sequenceOf([betweenSquareBrackets(literal)]),
+  ]))
+]).map(r => {
+  const isDot = r[1][0][0] === "."
+  let result = {
+    type: "MemberExpression",
+    computed: !isDot,
+    object: r[0],
+    property: isDot ? r[1][0][1] : r[1][0][0],
+  }
+
+  for (const seq of r[1].slice(1)) {
+    const isDot = seq[0] === "."
+    result = {
+      type: "MemberExpression",
+      computed: !isDot,
+      object: result,
+      property: isDot ? seq[1] : seq[0],
+    }
+  }
+
+  return result
+})
+
 const makeBinaryExpression = operator => sequenceOf([
-  whitespaceSurrounded(choice([literal, identifier])),
+  whitespaceSurrounded(choice([memberExpression, literal, identifier])),
   many1(sequenceOf([
     operator,
-    whitespaceSurrounded(choice([literal, identifier])),
-  ]))
+    whitespaceSurrounded(choice([memberExpression, literal, identifier])),
+  ])),
 ]).map(([initialTerm, rest]) => {
   let left = initialTerm
 
@@ -88,37 +124,6 @@ const unaryExpression = sequenceOf([
   operator: r[0],
   argument: r[1],
 }))
-
-const memberExpression = sequenceOf([
-  whitespaceSurrounded(identifier),
-  many1(choice([
-    sequenceOf([
-      str("."),
-      identifier,
-    ]),
-    sequenceOf([betweenSquareBrackets(literal)]),
-  ]))
-]).map(r => {
-  const isDot = r[1][0][0] === "."
-  let result = {
-    type: "MemberExpression",
-    computed: !isDot,
-    object: r[0],
-    property: isDot ? r[1][0][1] : r[1][0][0],
-  }
-
-  for (const seq of r[1].slice(1)) {
-    const isDot = seq[0] === "."
-    result = {
-      type: "MemberExpression",
-      computed: !isDot,
-      object: result,
-      property: isDot ? seq[1] : seq[0],
-    }
-  }
-
-  return result
-})
 
 const callExpression = sequenceOf([
   whitespaceSurrounded(choice([

@@ -4,7 +4,7 @@ import {
   sequenceOf,
   str,
   skip,
-  recursiveParser, pipeParsers, possibly,
+  recursiveParser, pipeParsers, possibly, tapParser,
 } from "arcsecond"
 import {
   betweenBrackets,
@@ -22,6 +22,7 @@ import {assignmentExpression, expression, relationExpression} from "./expression
 const statement = recursiveParser(() => whitespaceSurrounded(choice([
   returnStatement,
   expressionStatement,
+  classDeclaration,
   blockStatement,
   variableStatement,
   ifStatement,
@@ -122,7 +123,9 @@ const ifStatement = sequenceOf([
 
 const returnStatement = sequenceOf([
   whitespaceSurrounded(keywords.return),
+  // tapParser(console.log),
   whitespaceSurrounded(possibly(expression)),
+  // tapParser(console.log),
   whitespaceSurrounded(skip(semicolon)),
 ]).map(r => ({
   type: "ReturnStatement",
@@ -132,14 +135,37 @@ const returnStatement = sequenceOf([
 const functionDeclaration = sequenceOf([
   whitespaceSurrounded(keywords.def),
   whitespaceSurrounded(identifier),
-  whitespaceSurrounded(betweenParentheses(many(identifier))),
+  // tapParser(console.log),
+  whitespaceSurrounded(betweenParentheses(possibly(
+    sequenceOf([
+      identifier,
+      many(pipeParsers([
+        whitespaceSurrounded(str(",")),
+        identifier,
+      ]))
+    ])
+  ))),
   whitespaceSurrounded(blockStatement),
 ]).map(r => ({
   type: "FunctionDeclaration",
   name: r[1],
-  params: r[2],
+  params: r[2]? [r[2][0]].concat(r[2][1]): [],
   body: r[3],
 }))
+
+const classDeclaration = sequenceOf([
+  whitespaceSurrounded(keywords.class),
+  whitespaceSurrounded(identifier),
+  whitespaceSurrounded(blockStatement),
+]).map(r => {
+
+  return {
+    type: "ClassDeclaration",
+    id: r[1],
+    superClass: null,
+    body: r[2]
+  }
+})
 
 const emptyStatement = semicolon.map(_ => ({type: "EmptyStatement"}))
 

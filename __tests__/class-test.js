@@ -1,13 +1,7 @@
-/**
- * Building a Parser from scratch
- *
- * Course info: http://dmitrysoshnikov.com/courses/parser-from-scratch/
- *
- * (C) 2020-present Dmitry Soshnikov <dmitry.soshnikov@gmail.com>
- */
+import {testRun} from "./utils";
 
-module.exports = test => {
-  test(
+test("class", () => {
+  testRun(
     `
     class Point {
       def constructor(x, y) {
@@ -149,10 +143,10 @@ module.exports = test => {
       ],
     },
   );
+})
 
-  // Child class:
-
-  test(
+test("child class", () => {
+  testRun(
     `
     class Point3D extends Point {
       def constructor(x, y, z) {
@@ -294,10 +288,10 @@ module.exports = test => {
       ],
     },
   );
+})
 
-  // New expression:
-
-  test(
+test("new expression", () => {
+  testRun(
     `
     new Point3D(10, 20, 30);
     `,
@@ -331,4 +325,4 @@ module.exports = test => {
       ],
     },
   );
-};
+})
