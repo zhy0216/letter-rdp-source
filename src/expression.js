@@ -1,5 +1,16 @@
-import {anyOfString, choice, many, many1, pipeParsers, recursiveParser, sequenceOf, str} from "arcsecond";
-import {betweenSquareBrackets, identifier, literal, whitespaceSurrounded} from "./basic";
+import {
+  anyOfString,
+  choice,
+  many,
+  many1,
+  pipeParsers,
+  possibly,
+  recursiveParser,
+  sequenceOf, skip,
+  str,
+  tapParser
+} from "arcsecond";
+import {betweenParentheses, betweenSquareBrackets, identifier, literal, whitespaceSurrounded} from "./basic";
 
 export const expression = recursiveParser(() => choice([
   unaryExpression,
@@ -7,6 +18,7 @@ export const expression = recursiveParser(() => choice([
   relationExpression,
   binaryExpression,
   assignmentExpression,
+  callExpression,
   memberExpression,
   literal,
   identifier,
@@ -95,7 +107,7 @@ const memberExpression = sequenceOf([
     property: isDot ? r[1][0][1] : r[1][0][0],
   }
 
-  for(const seq of r[1].slice(1)) {
+  for (const seq of r[1].slice(1)) {
     const isDot = seq[0] === "."
     result = {
       type: "MemberExpression",
@@ -107,6 +119,37 @@ const memberExpression = sequenceOf([
 
   return result
 })
+
+const callExpression = sequenceOf([
+  whitespaceSurrounded(choice([
+    memberExpression,
+    identifier
+  ])),
+  many1(whitespaceSurrounded(betweenParentheses(possibly(sequenceOf([
+    whitespaceSurrounded(identifier),
+    many(pipeParsers([
+      str(","),
+      whitespaceSurrounded(identifier),
+    ]))
+  ]))))),
+]).map(r => {
+  let result = {
+    type: "CallExpression",
+    callee: r[0],
+    arguments: r[1][0]? [r[1][0][0]].concat(r[1][0][1]): []
+  }
+
+  for(const nextCalleeArg of r[1].slice(1)) {
+    result = {
+      type: "CallExpression",
+      callee: result,
+      arguments: nextCalleeArg? [nextCalleeArg[0]].concat(nextCalleeArg[1]): []
+    }
+  }
+
+  return result
+})
+
 
 const assignmentOperator = choice([
   str("="),
