@@ -2,10 +2,11 @@ import {
   anyOfString,
   between,
   char,
-  choice,
+  choice, digit,
   digits,
+  letter,
   letters,
-  lookAhead,
+  lookAhead, many,
   optionalWhitespace,
   sequenceOf,
   str
@@ -54,4 +55,11 @@ export const literal = choice([
   boolean,
 ])
 
-export const identifier = letters.map(tag("Identifier", undefined, "name"))
+export const identifier = sequenceOf([
+  letter,
+  many(choice([digit, letter])),
+
+]).map(r => ({
+  type: "Identifier",
+  name: [r[0]].concat(r[1]).join("")
+}))

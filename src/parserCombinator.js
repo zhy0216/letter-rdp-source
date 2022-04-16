@@ -123,9 +123,7 @@ const ifStatement = sequenceOf([
 
 const returnStatement = sequenceOf([
   whitespaceSurrounded(keywords.return),
-  // tapParser(console.log),
   whitespaceSurrounded(possibly(expression)),
-  // tapParser(console.log),
   whitespaceSurrounded(skip(semicolon)),
 ]).map(r => ({
   type: "ReturnStatement",
@@ -135,7 +133,6 @@ const returnStatement = sequenceOf([
 const functionDeclaration = sequenceOf([
   whitespaceSurrounded(keywords.def),
   whitespaceSurrounded(identifier),
-  // tapParser(console.log),
   whitespaceSurrounded(betweenParentheses(possibly(
     sequenceOf([
       identifier,
@@ -156,14 +153,18 @@ const functionDeclaration = sequenceOf([
 const classDeclaration = sequenceOf([
   whitespaceSurrounded(keywords.class),
   whitespaceSurrounded(identifier),
+  possibly(pipeParsers([
+    whitespaceSurrounded(str("extends")),
+    whitespaceSurrounded(identifier)
+  ])),
   whitespaceSurrounded(blockStatement),
 ]).map(r => {
 
   return {
     type: "ClassDeclaration",
     id: r[1],
-    superClass: null,
-    body: r[2]
+    superClass: r[2],
+    body: r[3]
   }
 })
 

@@ -43,6 +43,7 @@ const relationOperator = choice([
 ])
 
 const thisExpression = str("this").map(r => ({type: "ThisExpression"}))
+const superExpression = str("super").map(r => ({type: "Super"}))
 
 const memberExpression = sequenceOf([
   whitespaceSurrounded(choice([
@@ -78,8 +79,39 @@ const memberExpression = sequenceOf([
   return result
 })
 
+const callExpression = sequenceOf([
+  whitespaceSurrounded(choice([
+    superExpression,
+    memberExpression,
+    identifier
+  ])),
+  many1(whitespaceSurrounded(betweenParentheses(possibly(sequenceOf([
+    whitespaceSurrounded(identifier),
+    many(pipeParsers([
+      str(","),
+      whitespaceSurrounded(identifier),
+    ]))
+  ]))))),
+]).map(r => {
+  let result = {
+    type: "CallExpression",
+    callee: r[0],
+    arguments: r[1][0]? [r[1][0][0]].concat(r[1][0][1]): []
+  }
+
+  for(const nextCalleeArg of r[1].slice(1)) {
+    result = {
+      type: "CallExpression",
+      callee: result,
+      arguments: nextCalleeArg? [nextCalleeArg[0]].concat(nextCalleeArg[1]): []
+    }
+  }
+
+  return result
+})
+
 const makeBinaryExpression = operator => sequenceOf([
-  whitespaceSurrounded(choice([memberExpression, literal, identifier])),
+  whitespaceSurrounded(choice([callExpression, memberExpression, literal, identifier])),
   many1(sequenceOf([
     operator,
     whitespaceSurrounded(choice([memberExpression, literal, identifier])),
@@ -124,37 +156,6 @@ const unaryExpression = sequenceOf([
   operator: r[0],
   argument: r[1],
 }))
-
-const callExpression = sequenceOf([
-  whitespaceSurrounded(choice([
-    memberExpression,
-    identifier
-  ])),
-  many1(whitespaceSurrounded(betweenParentheses(possibly(sequenceOf([
-    whitespaceSurrounded(identifier),
-    many(pipeParsers([
-      str(","),
-      whitespaceSurrounded(identifier),
-    ]))
-  ]))))),
-]).map(r => {
-  let result = {
-    type: "CallExpression",
-    callee: r[0],
-    arguments: r[1][0]? [r[1][0][0]].concat(r[1][0][1]): []
-  }
-
-  for(const nextCalleeArg of r[1].slice(1)) {
-    result = {
-      type: "CallExpression",
-      callee: result,
-      arguments: nextCalleeArg? [nextCalleeArg[0]].concat(nextCalleeArg[1]): []
-    }
-  }
-
-  return result
-})
-
 
 const assignmentOperator = choice([
   str("="),
